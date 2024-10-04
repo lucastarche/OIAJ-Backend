@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 ENV PYTHONUNBUFFERED 1
 
@@ -9,9 +9,9 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive && \
 # Install prerequisites
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive && \
     apt-get -y install build-essential g++ openjdk-8-jdk-headless \
-    postgresql-client python3.6 python3-pip cppreference-doc-en-html \
-    cgroup-lite libcap-dev zip wget curl python3.6-dev libpq-dev \
-    libcups2-dev libyaml-dev libffi-dev locales screen postgresql-common
+    postgresql-client python3.8 python3-pip cppreference-doc-en-html \
+    cgroup-lite libcap-dev zip wget curl python3.8-dev libpq-dev \
+    libcups2-dev libyaml-dev libffi-dev locales screen postgresql-common git
 
 # Postgres (just the client)
 RUN sh -c "yes | /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh"
@@ -25,16 +25,16 @@ ENV LC_ALL en_US.UTF-8
 
 # Get CMS
 WORKDIR /home
-RUN wget https://github.com/cms-dev/cms/releases/download/v1.4.rc1/v1.4.rc1.tar.gz
-RUN tar xvf v1.4.rc1.tar.gz
+RUN git clone https://github.com/cms-dev/cms --recursive
 
 # Install dependencies
 WORKDIR /home/cms
+RUN git checkout b77c87b4d60fbe7df60dc5e03d2be632a25992fe
 RUN pip3 install -r requirements.txt
 
 # Add custom laoder to the CMS
-RUN sed -i '30 i from .argentina_loader import ArgLoader' /home/cms/cmscontrib/loaders/__init__.py
-RUN sed -i '40 i LOADERS[ArgLoader.short_name] = ArgLoader' /home/cms/cmscontrib/loaders/__init__.py
+RUN sed -i '21 i from .argentina_loader import ArgLoader' /home/cms/cmscontrib/loaders/__init__.py
+RUN sed -i '31 i LOADERS[ArgLoader.short_name] = ArgLoader' /home/cms/cmscontrib/loaders/__init__.py
 COPY cms/argentina_loader.py /home/cms/cmscontrib/loaders/
 
 # Build and install CMS
